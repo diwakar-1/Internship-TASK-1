@@ -12,12 +12,15 @@ import { ArrowLeft, Eye, Save, Share2, Settings, History, Rocket, ChevronDown, E
 import { debounce, timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/hooks/useApp";
+import { isFirebaseConfigured, getFirebase } from "@/lib/firebase";
 
 type Tab = "build" | "design" | "settings" | "preview" | "share" | "history";
 
 export default function FormEditPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const { user, loading: authLoading } = useApp();
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("build");
@@ -26,17 +29,52 @@ export default function FormEditPage() {
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!params.id) return;
-    let f = dataStore.getForm(params.id);
-    if (!f) {
-      const newForm = createForm("current", "Untitled form");
-      newForm.id = params.id;
-      f = newForm;
+
+    async function loadForm() {
+      let f = dataStore.getForm(params.id!);
+
+      // If not in local storage and Firebase is configured, try fetching from Firestore
+      if (!f && isFirebaseConfigured() && user) {
+        try {
+          const fb = await getFirebase();
+          if (fb && fb.db) {
+            const { doc, getDoc } = await import("firebase/firestore");
+            const docRef = doc(fb.db, "forms", params.id!);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data() as Form;
+              // Check ownership or collaboration
+              if (data.ownerId === user.uid || data.collaborators.includes(user.uid)) {
+                f = data;
+                // Cache it locally
+                const all = dataStore.getForms();
+                const idx = all.findIndex((form) => form.id === f!.id);
+                if (idx >= 0) all[idx] = f;
+                else all.push(f);
+                localStorage.setItem("formcraft:forms", JSON.stringify(all));
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching form from Firestore for editing:", error);
+        }
+      }
+
+      if (!f) {
+        const newForm = createForm(user?.uid ?? "current", "Untitled form");
+        newForm.id = params.id!;
+        f = newForm;
+      }
+
+      setForm(f);
+      setLastSaved(f.updatedAt);
+      setLoading(false);
     }
-    setForm(f);
-    setLastSaved(f.updatedAt);
-    setLoading(false);
-  }, [params.id]);
+
+    loadForm();
+  }, [params.id, authLoading, user]);
 
   const saveForm = useCallback(
     debounce((f: Form) => {

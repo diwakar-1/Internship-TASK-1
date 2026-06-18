@@ -8,6 +8,7 @@ import { Lock, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { generateId } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { isFirebaseConfigured, getFirebase } from "@/lib/firebase";
 
 export default function PublicFormPage() {
   const params = useParams<{ id: string }>();
@@ -22,16 +23,50 @@ export default function PublicFormPage() {
 
   useEffect(() => {
     if (!params.id) return;
-    const f = dataStore.getPublicForm(params.id);
-    setForm(f);
-    setLoading(false);
-    if (f) {
-      if (f.settings.passwordProtected) setUnlocked(false);
-      else setUnlocked(true);
-      if (f.settings.closeDate && Date.now() > f.settings.closeDate) setClosed(true);
-      dataStore.incrementViewCount(f.id);
-      (window as unknown as { __formStart?: number }).__formStart = Date.now();
+
+    async function loadForm() {
+      // First try to load from local storage
+      let f = dataStore.getPublicForm(params.id!);
+
+      // If not in local storage and Firebase is configured, try fetching from Firestore
+      if (!f && isFirebaseConfigured()) {
+        try {
+          const fb = await getFirebase();
+          if (fb && fb.db) {
+            const { doc, getDoc } = await import("firebase/firestore");
+            const docRef = doc(fb.db, "forms", params.id!);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data() as Form;
+              // Check if form is archived or deleted
+              if (data.status !== "archived" && !data.deletedAt) {
+                f = data;
+                // Cache it locally
+                const all = dataStore.getForms();
+                const idx = all.findIndex((form) => form.id === f!.id);
+                if (idx >= 0) all[idx] = f;
+                else all.push(f);
+                localStorage.setItem("formcraft:forms", JSON.stringify(all));
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching form from Firestore:", error);
+        }
+      }
+
+      setForm(f);
+      setLoading(false);
+      if (f) {
+        if (f.settings.passwordProtected) setUnlocked(false);
+        else setUnlocked(true);
+        if (f.settings.closeDate && Date.now() > f.settings.closeDate) setClosed(true);
+        dataStore.incrementViewCount(f.id);
+        (window as unknown as { __formStart?: number }).__formStart = Date.now();
+      }
     }
+
+    loadForm();
   }, [params.id]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {

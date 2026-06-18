@@ -62,9 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               seedSampleData(mappedUser);
               setUser(mappedUser);
               
-              if (fbUser.emailVerified) {
-                await syncFirestoreToLocal(fbUser.uid);
-              }
+              await syncFirestoreToLocal(fbUser.uid);
             } else {
               setUser(null);
             }
@@ -93,9 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const u = await auth.signin({ email, password });
     seedSampleData(u);
     setUser(u);
-    if (u.emailVerified) {
-      await syncFirestoreToLocal(u.uid);
-    }
+    await syncFirestoreToLocal(u.uid);
     return u;
   };
 
@@ -145,10 +141,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const updatedUser = await auth.reloadCurrentUser();
     if (updatedUser) {
       setUser(updatedUser);
-      if (updatedUser.emailVerified) {
-        await syncFirestoreToLocal(updatedUser.uid);
-        return true;
-      }
+      await syncFirestoreToLocal(updatedUser.uid);
+      return true;
     }
     return false;
   };
