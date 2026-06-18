@@ -1,0 +1,280 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Gnome BC';
+  src: local('Gnome BC'), local('GnomeBC');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: linear-gradient(135deg, #f7f6f2 0%, #f3edf8 50%, #eae4f5 100%);
+    @apply text-ink-900 antialiased;
+    font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ink-900/40 ring-offset-2 ring-offset-[#f7f6f2] rounded-lg;
+  }
+}
+
+@layer utilities {
+  .font-gnome-bc {
+    font-family: 'Gnome BC', 'GnomeBC', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer components {
+  /* ─── Crextio Panels ─── */
+  .crextio-panel {
+    @apply bg-white/70 backdrop-blur-md rounded-[32px] border border-white/60 shadow-soft transition-all duration-300;
+  }
+  .crextio-panel-static {
+    @apply bg-white/70 backdrop-blur-md rounded-[32px] border border-white/60 shadow-soft;
+  }
+  .crextio-card-dark {
+    @apply bg-[#222222] text-white rounded-[28px] border border-white/[0.08] shadow-lg;
+  }
+  
+  /* ─── Cards & Panels ─── */
+  .panel {
+    @apply bg-white/70 backdrop-blur-md rounded-[24px] border border-white/60 shadow-card transition-all duration-300;
+  }
+  .panel:hover {
+    @apply shadow-card-hover;
+    transform: translateY(-1px);
+  }
+  .panel-pad {
+    @apply p-6 sm:p-7;
+  }
+  .panel-static {
+    @apply bg-white/70 backdrop-blur-md rounded-[24px] border border-white/60 shadow-card;
+  }
+
+  /* ─── Glass Card (Dark gradient, Devoria-style) ─── */
+  .glass-card {
+    @apply relative rounded-2xl overflow-hidden shadow-glass;
+    background: linear-gradient(135deg, #1a1028 0%, #2d1f47 35%, #150f22 70%, #0d0a14 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.5) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 78% 30%, rgba(255,255,255,0.4) 0 1.2px, transparent 1.8px),
+      radial-gradient(circle at 50% 80%, rgba(255,255,255,0.3) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 32% 64%, rgba(255,255,255,0.25) 0 0.8px, transparent 1.2px),
+      radial-gradient(circle at 88% 72%, rgba(255,255,255,0.35) 0 0.9px, transparent 1.4px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glass-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glass-card:hover {
+    @apply shadow-glass-hover;
+    transform: translateY(-3px) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .glass-card:hover::after {
+    left: 100%;
+  }
+  .glass-card > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ─── Chips & Badges ─── */
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  .icon-tile {
+    @apply w-9 h-9 rounded-xl bg-[#f4f1f8] flex items-center justify-center text-ink-900;
+  }
+  .icon-tile-glass {
+    @apply w-9 h-9 rounded-xl flex items-center justify-center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* ─── Buttons ─── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-dark {
+    @apply btn bg-ink-900 text-white hover:bg-black hover:shadow-lg;
+  }
+  .btn-ghost {
+    @apply btn text-ink-900 hover:bg-black/[0.04];
+  }
+  .btn-primary {
+    @apply btn text-white;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-secondary {
+    @apply btn bg-white text-ink-900 border border-black/10 hover:bg-black/[0.02] hover:border-black/20;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+
+  /* ─── Inputs ─── */
+  .input {
+    @apply w-full px-3 py-2 border border-black/10 rounded-xl text-sm bg-white outline-none transition-all duration-200;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .input:focus {
+    @apply border-brand-500 ring-2 ring-brand-100;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(99, 102, 241, 0.08);
+  }
+  .label {
+    @apply block text-sm font-medium text-ink-900 mb-1.5;
+  }
+
+  /* ─── Progress Bar ─── */
+  .progress-bar {
+    @apply h-1.5 rounded-full overflow-hidden;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .progress-bar-fill {
+    @apply h-full rounded-full;
+    animation: progressFill 1s ease-out forwards;
+    background: linear-gradient(90deg, var(--progress-color, #6366f1), var(--progress-color-end, #a78bfa));
+  }
+  .progress-bar-light {
+    @apply h-1.5 rounded-full overflow-hidden bg-black/5;
+  }
+  .progress-bar-fill-light {
+    @apply h-full rounded-full;
+    animation: progressFill 1s ease-out forwards;
+  }
+
+  /* ─── Gradient Text ─── */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #4f46e5, #7c3aed, #a78bfa);
+    background-size: 200% auto;
+  }
+  .gradient-text-animated {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(90deg, #4f46e5, #7c3aed, #a78bfa, #7c3aed, #4f46e5);
+    background-size: 200% auto;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* ─── Hatching Pattern ─── */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.06) 0 1px,
+      transparent 1px 6px
+    );
+  }
+  .hatch-white {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.15) 0px,
+      rgba(255, 255, 255, 0.15) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+  .hatch-dark {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.07) 0px,
+      rgba(0, 0, 0, 0.07) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+
+  /* ─── Stat Card Accent ─── */
+  .stat-accent {
+    @apply relative overflow-hidden;
+  }
+  .stat-accent::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-gradient, linear-gradient(90deg, #6366f1, #a78bfa));
+    border-radius: 999px 999px 0 0;
+  }
+}
+
+/* ─── Sparkle Overlay ─── */
+.sparkle {
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,0.7) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 30%, rgba(255,255,255,0.6) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 50% 80%, rgba(255,255,255,0.5) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 32% 64%, rgba(255,255,255,0.4) 0 0.8px, transparent 1.2px);
+}
+
+/* ─── Decorative Orbs ─── */
+.orb {
+  @apply absolute rounded-full pointer-events-none;
+  filter: blur(80px);
+  opacity: 0.5;
+}
+.orb-brand {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent 70%);
+}
+.orb-purple {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent 70%);
+}
+.orb-cyan {
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.3), transparent 70%);
+}
+
+/* ─── Scrollbar ─── */
+.scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 9999px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* ─── Animations ─── */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out;
+}
+
+/* ─── Page transition ─── */
+.page-enter {
+  animation: fadeIn 0.25s ease-out, slideUp 0.3s ease-out;
+}
