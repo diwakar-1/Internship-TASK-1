@@ -38,11 +38,6 @@ Open [http://localhost:3000](http://localhost:3000) and create an account.
 
 Copy `.env.example` to `.env.local` and fill in your Firebase credentials. The app automatically uses Firebase when configured, otherwise falls back to localStorage for instant local development.
 
-## Default Demo Account
-
-- Email: `demo@formcraft.app`
-- Password: `demo1234`
-
 ## Scripts
 
 - `npm run dev` - Development server
