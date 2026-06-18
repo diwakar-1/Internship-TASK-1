@@ -15,10 +15,7 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
-  const [birthYear, setBirthYear] = useState<number | "">("");
-  const [birthMonth, setBirthMonth] = useState("");
-  const [birthDay, setBirthDay] = useState<number | "">("");
-  const [gender, setGender] = useState("");
+
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -101,11 +98,7 @@ export default function SignupPage() {
         `${firstName} ${lastName}`.trim(),
         username.trim(),
         firstName.trim(),
-        lastName.trim(),
-        Number(birthYear),
-        birthMonth,
-        Number(birthDay),
-        gender
+        lastName.trim()
       );
       toast.success("Registration successful!");
       router.push("/forms");
@@ -186,72 +179,7 @@ export default function SignupPage() {
                   <span className="text-[10px] text-black/35 mt-1 block">Only letters, numbers, and . - _ special characters allowed.</span>
                 </div>
 
-                {/* Birth Date */}
-                <div>
-                  <label className="label text-xs uppercase tracking-wider text-black/60 font-semibold">Birth Date</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <select 
-                      value={birthMonth} 
-                      onChange={(e) => setBirthMonth(e.target.value)} 
-                      className="input rounded-xl text-xs py-2 px-2" 
-                      required
-                    >
-                      <option value="">Month</option>
-                      <option value="January">January</option>
-                      <option value="February">February</option>
-                      <option value="March">March</option>
-                      <option value="April">April</option>
-                      <option value="May">May</option>
-                      <option value="June">June</option>
-                      <option value="July">July</option>
-                      <option value="August">August</option>
-                      <option value="September">September</option>
-                      <option value="October">October</option>
-                      <option value="November">November</option>
-                      <option value="December">December</option>
-                    </select>
-                    <select 
-                      value={birthDay} 
-                      onChange={(e) => setBirthDay(e.target.value ? Number(e.target.value) : "")} 
-                      className="input rounded-xl text-xs py-2 px-2" 
-                      required
-                    >
-                      <option value="">Day</option>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                    <select 
-                      value={birthYear} 
-                      onChange={(e) => setBirthYear(e.target.value ? Number(e.target.value) : "")} 
-                      className="input rounded-xl text-xs py-2 px-2" 
-                      required
-                    >
-                      <option value="">Year</option>
-                      {Array.from({ length: 120 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
 
-                {/* Gender */}
-                <div>
-                  <label className="label text-xs uppercase tracking-wider text-black/60 font-semibold">Gender</label>
-                  <select 
-                    value={gender} 
-                    onChange={(e) => setGender(e.target.value)} 
-                    className="input rounded-xl text-xs py-2.5 px-3" 
-                    required
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Non-binary">Non-binary</option>
-                    <option value="Other">Other</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
-                  </select>
-                </div>
 
                 {/* Email */}
                 <div>
