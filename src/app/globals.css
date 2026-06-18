@@ -44,7 +44,9 @@
     @apply bg-white/70 backdrop-blur-md rounded-[32px] border border-white/60 shadow-soft;
   }
   .crextio-card-dark {
-    @apply bg-[#222222] text-white rounded-[28px] border border-white/[0.08] shadow-lg;
+    background: linear-gradient(135deg, #242130 0%, #14121c 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    @apply text-white rounded-[28px] shadow-lg;
   }
   
   /* ─── Cards & Panels ─── */

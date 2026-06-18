@@ -1772,7 +1772,7 @@ function FormCard({
             Edit Form
           </Link>
           
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity duration-200">
             {form.status === "published" && (
               <>
                 <Link href={`/forms/${form.id}`} target="_blank" className={cn("p-1.5 rounded-full transition", isDark ? "hover:bg-white/10 text-white/60 hover:text-white" : "hover:bg-black/5 text-black/50 hover:text-black")} title="View">
