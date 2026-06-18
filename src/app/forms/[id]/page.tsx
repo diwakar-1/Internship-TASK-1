@@ -74,6 +74,7 @@ export default function PublicFormPage() {
     const response = {
       id: generateId("resp_"),
       formId: form.id,
+      ownerId: form.ownerId,
       formVersionId: form.versions[form.versions.length - 1]?.versionId ?? "v1",
       data,
       submittedAt: Date.now(),

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useApp } from "@/hooks/useApp";
 import { dataStore, syncFirestoreToLocal } from "@/lib/store";
 import { exportResponsesToCSV } from "@/lib/analytics";
@@ -15,6 +16,8 @@ import type { Form, FormResponse } from "@/types";
 
 export default function ResponsesPage() {
   const { user } = useApp();
+  const searchParams = useSearchParams();
+  const formIdParam = searchParams.get("formId");
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [responses, setResponses] = useState<FormResponse[]>([]);
@@ -29,13 +32,18 @@ export default function ResponsesPage() {
     const myForms = dataStore.getForms(user.uid);
     setForms(myForms);
     if (myForms.length > 0 && !selectedFormId) {
-      const withResponses = myForms.filter((f) => f.responseCount > 0);
-      setSelectedFormId((withResponses[0] ?? myForms[0]).id);
+      const paramForm = myForms.find((f) => f.id === formIdParam);
+      if (paramForm) {
+        setSelectedFormId(paramForm.id);
+      } else {
+        const withResponses = myForms.filter((f) => f.responseCount > 0);
+        setSelectedFormId((withResponses[0] ?? myForms[0]).id);
+      }
     }
 
     // Trigger Firestore sync on load/mount
     syncFirestoreToLocal(user.uid);
-  }, [user]);
+  }, [user, formIdParam]);
 
   useEffect(() => {
     if (!selectedFormId) return;
@@ -48,8 +56,17 @@ export default function ResponsesPage() {
     const handleSync = () => {
       const myForms = dataStore.getForms(user.uid);
       setForms(myForms);
-      if (selectedFormId) {
-        setResponses(dataStore.getResponses(selectedFormId));
+      if (myForms.length > 0) {
+        const exists = myForms.some((f) => f.id === selectedFormId);
+        if (!exists) {
+          const withResponses = myForms.filter((f) => f.responseCount > 0);
+          setSelectedFormId((withResponses[0] ?? myForms[0]).id);
+        } else if (selectedFormId) {
+          setResponses(dataStore.getResponses(selectedFormId));
+        }
+      } else {
+        setSelectedFormId(null);
+        setResponses([]);
       }
     };
     window.addEventListener("formcraft:sync", handleSync);

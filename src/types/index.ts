@@ -123,6 +123,7 @@ export interface Form {
 export interface FormResponse {
   id: string;
   formId: string;
+  ownerId?: string;
   formVersionId: string;
   data: Record<string, unknown>;
   submittedAt: number;

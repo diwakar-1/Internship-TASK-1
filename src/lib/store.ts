@@ -419,43 +419,79 @@ export async function syncFirestoreToLocal(userId: string) {
     const { collection, query, where, getDocs } = await import("firebase/firestore");
 
     // Fetch forms where user is owner
-    const ownerQuery = query(collection(fb.db, "forms"), where("ownerId", "==", userId));
-    const ownerSnap = await getDocs(ownerQuery);
+    let ownerForms: Form[] = [];
+    try {
+      const ownerQuery = query(collection(fb.db, "forms"), where("ownerId", "==", userId));
+      const ownerSnap = await getDocs(ownerQuery);
+      ownerSnap.forEach((doc) => {
+        ownerForms.push(doc.data() as Form);
+      });
+    } catch (err) {
+      console.error("Error fetching owner forms:", err);
+    }
 
     // Fetch forms where user is collaborator
-    const collabQuery = query(collection(fb.db, "forms"), where("collaborators", "array-contains", userId));
-    const collabSnap = await getDocs(collabQuery);
+    let collabForms: Form[] = [];
+    try {
+      const collabQuery = query(collection(fb.db, "forms"), where("collaborators", "array-contains", userId));
+      const collabSnap = await getDocs(collabQuery);
+      collabSnap.forEach((doc) => {
+        collabForms.push(doc.data() as Form);
+      });
+    } catch (err) {
+      console.error("Error fetching collaborator forms:", err);
+    }
 
     const remoteFormsMap = new Map<string, Form>();
-    ownerSnap.forEach((doc) => {
-      remoteFormsMap.set(doc.id, doc.data() as Form);
-    });
-    collabSnap.forEach((doc) => {
-      remoteFormsMap.set(doc.id, doc.data() as Form);
-    });
+    ownerForms.forEach((f) => remoteFormsMap.set(f.id, f));
+    collabForms.forEach((f) => remoteFormsMap.set(f.id, f));
     const remoteForms = Array.from(remoteFormsMap.values());
 
-    // Fetch responses for these forms
-    const formIds = remoteForms.map((f) => f.id);
+    // Fetch responses
     const remoteResponses: FormResponse[] = [];
     const responsesCountMap = new Map<string, number>();
+    const fetchedResponseIds = new Set<string>();
 
+    // Step 1: Try to fetch all responses for this owner at once using ownerId
+    try {
+      const ownerRespQuery = query(collection(fb.db, "responses"), where("ownerId", "==", userId));
+      const ownerRespSnap = await getDocs(ownerRespQuery);
+      ownerRespSnap.forEach((doc) => {
+        const resp = doc.data() as FormResponse;
+        if (!fetchedResponseIds.has(resp.id)) {
+          remoteResponses.push(resp);
+          fetchedResponseIds.add(resp.id);
+        }
+      });
+    } catch (err) {
+      console.warn("Could not query responses by ownerId (this is normal if index is building or rule differs):", err);
+    }
+
+    // Step 2: Fallback / supplementary query by individual formId
+    const formIds = remoteForms.map((f) => f.id);
     if (formIds.length > 0) {
       for (const formId of formIds) {
-        const respQuery = query(collection(fb.db, "responses"), where("formId", "==", formId));
-        const respSnap = await getDocs(respQuery);
-        let count = 0;
-        respSnap.forEach((doc) => {
-          remoteResponses.push(doc.data() as FormResponse);
-          count++;
-        });
-        responsesCountMap.set(formId, count);
+        try {
+          const respQuery = query(collection(fb.db, "responses"), where("formId", "==", formId));
+          const respSnap = await getDocs(respQuery);
+          respSnap.forEach((doc) => {
+            const resp = doc.data() as FormResponse;
+            if (!fetchedResponseIds.has(resp.id)) {
+              remoteResponses.push(resp);
+              fetchedResponseIds.add(resp.id);
+            }
+          });
+        } catch (err) {
+          console.error(`Error querying responses for form ${formId}:`, err);
+        }
       }
     }
 
-    // Ensure form responseCounts are accurate based on actual responses fetched
+    // Calculate response counts from successfully fetched responses
     remoteForms.forEach((f) => {
-      f.responseCount = responsesCountMap.get(f.id) ?? 0;
+      const count = remoteResponses.filter((r) => r.formId === f.id).length;
+      responsesCountMap.set(f.id, count);
+      f.responseCount = count;
     });
 
     // Write updated forms to local storage

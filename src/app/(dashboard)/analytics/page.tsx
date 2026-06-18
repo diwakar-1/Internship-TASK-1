@@ -38,8 +38,16 @@ export default function AnalyticsPage() {
     const handleSync = () => {
       const myForms = dataStore.getForms(user.uid).filter((f) => f.status === "published");
       setForms(myForms);
-      if (selectedFormId) {
-        setResponses(dataStore.getResponses(selectedFormId));
+      if (myForms.length > 0) {
+        const exists = myForms.some((f) => f.id === selectedFormId);
+        if (!exists) {
+          setSelectedFormId(myForms[0].id);
+        } else if (selectedFormId) {
+          setResponses(dataStore.getResponses(selectedFormId));
+        }
+      } else {
+        setSelectedFormId(null);
+        setResponses([]);
       }
     };
     window.addEventListener("formcraft:sync", handleSync);
