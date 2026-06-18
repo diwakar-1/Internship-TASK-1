@@ -44,7 +44,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan type. Must be bronze, silver, or gold" }, { status: 400 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Dynamically resolve app base URL from request host to support correct localhost/production redirects
+    const host = req.headers.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+    const appUrl = `${protocol}://${host}`;
 
     // Create a checkout session using one-time payment mode (allows UPI payments)
     const session = await stripe.checkout.sessions.create({
