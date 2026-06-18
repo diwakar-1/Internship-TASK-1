@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "FormCraft — Build Beautiful Forms in Minutes",
   description: "Create, customize, and share dynamic interactive forms with real-time response collection.",
   keywords: ["form builder", "survey", "questionnaire", "form creator", "online forms"],
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
