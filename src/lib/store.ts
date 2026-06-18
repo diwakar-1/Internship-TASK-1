@@ -432,31 +432,64 @@ export async function syncFirestoreToLocal(userId: string) {
     });
     const remoteForms = Array.from(remoteFormsMap.values());
 
-    if (remoteForms.length > 0) {
-      const localForms = read<Form[]>(STORAGE_KEYS.forms, []);
-      const otherForms = localForms.filter((f) => f.ownerId !== userId && !f.collaborators.includes(userId));
-      const updatedForms = [...otherForms, ...remoteForms];
-      write(STORAGE_KEYS.forms, updatedForms);
-    }
-
     // Fetch responses for these forms
     const formIds = remoteForms.map((f) => f.id);
+    const remoteResponses: FormResponse[] = [];
+    const responsesCountMap = new Map<string, number>();
+
     if (formIds.length > 0) {
-      const remoteResponses: FormResponse[] = [];
       for (const formId of formIds) {
         const respQuery = query(collection(fb.db, "responses"), where("formId", "==", formId));
         const respSnap = await getDocs(respQuery);
+        let count = 0;
         respSnap.forEach((doc) => {
           remoteResponses.push(doc.data() as FormResponse);
+          count++;
+        });
+        responsesCountMap.set(formId, count);
+      }
+    }
+
+    // Ensure form responseCounts are accurate based on actual responses fetched
+    remoteForms.forEach((f) => {
+      f.responseCount = responsesCountMap.get(f.id) ?? 0;
+    });
+
+    // Write updated forms to local storage
+    const localForms = read<Form[]>(STORAGE_KEYS.forms, []);
+    const otherForms = localForms.filter((f) => f.ownerId !== userId && !f.collaborators.includes(userId));
+    const updatedForms = [...otherForms, ...remoteForms];
+    write(STORAGE_KEYS.forms, updatedForms);
+
+    // Write updated responses to local storage and detect new submissions
+    const localResponses = read<FormResponse[]>(STORAGE_KEYS.responses, []);
+    const localResponseIds = new Set(localResponses.map((r) => r.id));
+
+    // Detect new responses (submitted within the last 5 minutes and not already in local storage)
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    const newResponses = remoteResponses.filter(
+      (r) => r.submittedAt > fiveMinutesAgo && !localResponseIds.has(r.id)
+    );
+
+    newResponses.forEach((r) => {
+      const form = remoteForms.find((f) => f.id === r.formId);
+      if (form) {
+        dataStore.addNotification({
+          userId: userId,
+          title: "New Response Received",
+          message: `Your form "${form.title}" just received a new response.`,
+          type: "submission",
+          link: `/responses?formId=${form.id}`,
         });
       }
+    });
 
-      if (remoteResponses.length > 0) {
-        const localResponses = read<FormResponse[]>(STORAGE_KEYS.responses, []);
-        const otherResponses = localResponses.filter((r) => !formIds.includes(r.formId));
-        const updatedResponses = [...otherResponses, ...remoteResponses];
-        write(STORAGE_KEYS.responses, updatedResponses);
-      }
+    const otherResponses = localResponses.filter((r) => !formIds.includes(r.formId));
+    const updatedResponses = [...otherResponses, ...remoteResponses];
+    write(STORAGE_KEYS.responses, updatedResponses);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("formcraft:sync"));
     }
   } catch (error) {
     console.error("Error syncing Firestore to LocalStorage:", error);

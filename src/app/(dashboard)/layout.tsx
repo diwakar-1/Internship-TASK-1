@@ -18,6 +18,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
+  // Trigger background sync on mount, window focus, and periodically every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    // Run sync on mount/init
+    syncFirestoreToLocal(user.uid);
+
+    // Run sync on window focus (user returning to tab)
+    const handleFocus = () => {
+      syncFirestoreToLocal(user.uid);
+    };
+    window.addEventListener("focus", handleFocus);
+
+    // Run sync periodically every 30 seconds
+    const interval = setInterval(() => {
+      syncFirestoreToLocal(user.uid);
+    }, 30000);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
+  }, [user]);
+
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifiedIdsRef = useRef<Set<string>>(new Set());

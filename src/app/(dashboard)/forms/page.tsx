@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/hooks/useApp";
-import { dataStore, createForm, createField, generateId } from "@/lib/store";
+import { dataStore, createForm, createField, generateId, syncFirestoreToLocal } from "@/lib/store";
 import { EmptyState } from "@/components/ui/PageHeader";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
 import { toast } from "sonner";
@@ -385,7 +385,21 @@ export default function FormsPage() {
     setForms(dataStore.getForms(user.uid));
   };
 
-  useEffect(loadForms, [user]);
+  useEffect(() => {
+    if (!user) return;
+    loadForms();
+    syncFirestoreToLocal(user.uid);
+  }, [user]);
+
+  // Listen for background sync updates
+  useEffect(() => {
+    if (!user) return;
+    const handleSync = () => {
+      loadForms();
+    };
+    window.addEventListener("formcraft:sync", handleSync);
+    return () => window.removeEventListener("formcraft:sync", handleSync);
+  }, [user]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

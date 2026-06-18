@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { useApp } from "@/hooks/useApp";
-import { dataStore } from "@/lib/store";
+import { dataStore, syncFirestoreToLocal } from "@/lib/store";
 import { computeAnalytics } from "@/lib/analytics";
 import { EmptyState } from "@/components/ui/PageHeader";
 import { BarChart3, TrendingUp, Eye, Clock, CheckCircle2 } from "lucide-react";
@@ -21,13 +21,30 @@ export default function AnalyticsPage() {
     if (!user) return;
     const myForms = dataStore.getForms(user.uid).filter((f) => f.status === "published");
     setForms(myForms);
-    if (myForms.length > 0) setSelectedFormId(myForms[0].id);
+    if (myForms.length > 0 && !selectedFormId) setSelectedFormId(myForms[0].id);
+
+    // Sync on mount
+    syncFirestoreToLocal(user.uid);
   }, [user]);
 
   useEffect(() => {
     if (!selectedFormId) return;
     setResponses(dataStore.getResponses(selectedFormId));
   }, [selectedFormId]);
+
+  // Listen for background sync updates
+  useEffect(() => {
+    if (!user) return;
+    const handleSync = () => {
+      const myForms = dataStore.getForms(user.uid).filter((f) => f.status === "published");
+      setForms(myForms);
+      if (selectedFormId) {
+        setResponses(dataStore.getResponses(selectedFormId));
+      }
+    };
+    window.addEventListener("formcraft:sync", handleSync);
+    return () => window.removeEventListener("formcraft:sync", handleSync);
+  }, [user, selectedFormId]);
 
   const form = useMemo(() => forms.find((f) => f.id === selectedFormId) ?? null, [forms, selectedFormId]);
   const analytics = useMemo(() => form ? computeAnalytics(form, responses) : null, [form, responses]);

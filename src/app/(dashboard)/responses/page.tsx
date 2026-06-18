@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useApp } from "@/hooks/useApp";
-import { dataStore } from "@/lib/store";
+import { dataStore, syncFirestoreToLocal } from "@/lib/store";
 import { exportResponsesToCSV } from "@/lib/analytics";
 import { EmptyState } from "@/components/ui/PageHeader";
 import { Search, Download, FileText, Eye, Edit3, Trash2, Filter, FileSpreadsheet, ChevronRight, ChevronDown, Calendar, Save } from "lucide-react";
@@ -32,12 +32,29 @@ export default function ResponsesPage() {
       const withResponses = myForms.filter((f) => f.responseCount > 0);
       setSelectedFormId((withResponses[0] ?? myForms[0]).id);
     }
+
+    // Trigger Firestore sync on load/mount
+    syncFirestoreToLocal(user.uid);
   }, [user]);
 
   useEffect(() => {
     if (!selectedFormId) return;
     setResponses(dataStore.getResponses(selectedFormId));
   }, [selectedFormId]);
+
+  // Listen for background sync updates
+  useEffect(() => {
+    if (!user) return;
+    const handleSync = () => {
+      const myForms = dataStore.getForms(user.uid);
+      setForms(myForms);
+      if (selectedFormId) {
+        setResponses(dataStore.getResponses(selectedFormId));
+      }
+    };
+    window.addEventListener("formcraft:sync", handleSync);
+    return () => window.removeEventListener("formcraft:sync", handleSync);
+  }, [user, selectedFormId]);
 
   const selectedForm = useMemo(() => forms.find((f) => f.id === selectedFormId) ?? null, [forms, selectedFormId]);
 
