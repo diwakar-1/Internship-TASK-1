@@ -62,7 +62,8 @@ export const auth = {
             gender
           };
 
-          await setDoc(doc(fb.db, "users", fbUser.uid), user);
+          const cleanUser = JSON.parse(JSON.stringify(user));
+          await setDoc(doc(fb.db, "users", fbUser.uid), cleanUser);
           dataStore.saveUser(user);
           dataStore.setCurrentUser(user);
           dataStore.addNotification({
@@ -241,7 +242,8 @@ export const auth = {
             photoURL: updates.photoURL !== undefined ? (updates.photoURL || null) : fb.auth.currentUser.photoURL,
           });
         }
-        await setDoc(doc(fb.db, "users", current.uid), updated, { merge: true });
+        const cleanUpdated = JSON.parse(JSON.stringify(updated));
+        await setDoc(doc(fb.db, "users", current.uid), cleanUpdated, { merge: true });
       }
     }
 

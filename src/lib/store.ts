@@ -156,7 +156,8 @@ export const dataStore = {
         if (!fb || !fb.db) return;
         try {
           const { doc, setDoc } = await import("firebase/firestore");
-          await setDoc(doc(fb.db, "forms", form.id), form);
+          const cleanForm = JSON.parse(JSON.stringify(form));
+          await setDoc(doc(fb.db, "forms", form.id), cleanForm);
         } catch (error) {
           console.error("Error saving form to Firestore:", error);
         }
@@ -270,7 +271,8 @@ export const dataStore = {
         if (!fb || !fb.db) return;
         try {
           const { doc, setDoc } = await import("firebase/firestore");
-          await setDoc(doc(fb.db, "responses", response.id), response);
+          const cleanResponse = JSON.parse(JSON.stringify(response));
+          await setDoc(doc(fb.db, "responses", response.id), cleanResponse);
         } catch (error) {
           console.error("Error saving response to Firestore:", error);
         }
@@ -292,7 +294,8 @@ export const dataStore = {
           if (!fb || !fb.db) return;
           try {
             const { doc, setDoc } = await import("firebase/firestore");
-            await setDoc(doc(fb.db, "responses", id), response, { merge: true });
+            const cleanResponse = JSON.parse(JSON.stringify(response));
+            await setDoc(doc(fb.db, "responses", id), cleanResponse, { merge: true });
           } catch (error) {
             console.error("Error updating response in Firestore:", error);
           }
