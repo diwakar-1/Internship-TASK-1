@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "@/hooks/useApp";
-import { Mail, Lock, User, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { Mail, Lock, User, Loader2, AlertCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { dataStore } from "@/lib/store";
 
@@ -19,6 +19,7 @@ export default function SignupPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   
   const [loading, setLoading] = useState(false);
@@ -195,7 +196,22 @@ export default function SignupPage() {
                   <label className="label text-xs uppercase tracking-wider text-black/60 font-semibold">Password</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/40" strokeWidth={2} />
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input pl-9" placeholder="At least 6 characters" required minLength={6} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="input pl-9 pr-9"
+                      placeholder="At least 6 characters"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/60 transition"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
 
